@@ -1,0 +1,22 @@
+\begin{tikzpicture}[node distance=1.5cm,>=stealth',bend angle=45,auto]
+\tikzstyle{place}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=10mm]
+\begin{scope}
+\node [place, label] (c0){$\xb_1$};
+\coordinate [below left of = c0, label = center:{$\cdots$}] (l1) {};
+\coordinate [below right of = c0, label = center:{$\cdots$}] (r1) {};
+\node [place] (l2) [below of=l1]{$\xb_{2}$};
+\node [place] (r2) [below of=r1]{$\xb_{3}$};
+\path[->] (c0)
+    edge [in=150,out=180, densely dotted] node[left]{\footnotesize{$1-(\delta + \la\bmu,\ba\ra)$}} (l2)
+    edge [in=30,out=-120] node[]{} (l2)
+    edge [in=30,out=0, densely dotted] node[right, align = center]{\footnotesize{$\delta + \la\bmu,\ba\ra$}} (r2)
+    edge [in=150,out=-60] node[]{} (r2)
+    ;
+\path[->] (l2)
+    edge [in=-60,out=-120, min distance = 6cm, loop] node[above] {$1$} ()
+    ;
+\path[->] (r2)
+    edge [in=-120,out=-60, min distance = 6cm, loop] node[above] {$1$} ()
+    ;
+\end{scope} 
+\end{tikzpicture}
