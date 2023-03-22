@@ -91,8 +91,12 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                                 print('found ' + output_filename)
                                 continue
 
+                            # TODO : need to import missing dependencies (search for package names, then \\usepackage)
+                            header = "\\documentclass{article}\n\\usepackage{tikz}\n\\thispagestyle{empty}\n\\begin{document}"
+                            footer = "\\end{document}"
+
                             with open(OUTPUT_DIRECTORY / output_filename, 'w') as output:
-                                output.write(tikz)
+                                output.write(header + tikz + footer)
                             print(filename + ': extracted TikZ code to ' + str(OUTPUT_DIRECTORY))
                                 
                 else:
