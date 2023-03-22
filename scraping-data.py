@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 import urllib.request
 import os
 import tarfile
+import re
 
 NUMBER_OF_PAPERS = 10
 SOURCE_DIRECTORY = Path("./zipped_source")
@@ -67,16 +68,19 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                         in_tikz = False
                         for line in tex:
                             line = line.decode('utf-8')
-                            if '\\begin{tikzpicture}' in line:
+
+                            if re.search(r"(\\begin{tikzpicture}).*", line):
                                 in_tikz = True
-                                tikz_list.append('')
+                                tikz_list.append("")
+                                tikz_list[tikz_idx] += re.search(r"(\\begin{tikzpicture}).*", line).group(0)
 
-                            if in_tikz:
-                                tikz_list[tikz_idx] += line
-
-                            if '\\end{tikzpicture}' in line:
+                            elif re.search(r".*(\\end{tikzpicture})", line):
                                 in_tikz = False
+                                tikz_list[tikz_idx] += re.search(r".*(\\end{tikzpicture})", line).group(0)
                                 tikz_idx += 1
+
+                            elif in_tikz:
+                                tikz_list[tikz_idx] += line
 
                         if tikz_list == []:
                             print(filename + ': no TikZ found')
