@@ -9,6 +9,12 @@ NUMBER_OF_PAPERS = 10
 SOURCE_DIRECTORY = Path("./zipped_source")
 OUTPUT_DIRECTORY = Path("./output_tex")
 
+if SOURCE_DIRECTORY not in os.listdir("."):
+    os.mkdir(SOURCE_DIRECTORY)
+
+if OUTPUT_DIRECTORY not in os.listdir("."):
+    os.mkdir(OUTPUT_DIRECTORY)
+
 # arXiv API for getting the math/physics paper ids
 url = 'http://export.arxiv.org/api/query'
 
