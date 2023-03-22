@@ -6,7 +6,7 @@ import os
 import tarfile
 import re
 
-NUMBER_OF_PAPERS = 10
+NUMBER_OF_PAPERS = 25
 SOURCE_DIRECTORY = Path("./zipped_source")
 OUTPUT_DIRECTORY = Path("./output_tex")
 
