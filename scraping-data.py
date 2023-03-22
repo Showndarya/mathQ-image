@@ -9,10 +9,10 @@ NUMBER_OF_PAPERS = 10
 SOURCE_DIRECTORY = Path("./zipped_source")
 OUTPUT_DIRECTORY = Path("./output_tex")
 
-if SOURCE_DIRECTORY not in os.listdir("."):
+if str(SOURCE_DIRECTORY) not in os.listdir("."):
     os.mkdir(SOURCE_DIRECTORY)
 
-if OUTPUT_DIRECTORY not in os.listdir("."):
+if str(OUTPUT_DIRECTORY) not in os.listdir("."):
     os.mkdir(OUTPUT_DIRECTORY)
 
 # arXiv API for getting the math/physics paper ids
@@ -48,11 +48,6 @@ print()
 
 for filename in os.listdir(SOURCE_DIRECTORY):
     if filename.endswith('.tar.gz'):
-        # Extract the .tar.gz file
-        output_filename = filename.replace('.tar.gz', '.tex')
-        if output_filename in os.listdir(OUTPUT_DIRECTORY):
-            print("found " + output_filename)
-            continue
 
         try:
             with tarfile.open(SOURCE_DIRECTORY / filename) as tar:
@@ -67,23 +62,37 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                 if tex_file is not None:
                     with tar.extractfile(tex_file) as tex:
                         # Read the .tex file and find the tikzpicture block
-                        tikz = ''
+                        tikz_list = []
+                        tikz_idx = 0
                         in_tikz = False
                         for line in tex:
                             line = line.decode('utf-8')
                             if '\\begin{tikzpicture}' in line:
                                 in_tikz = True
+                                tikz_list.append('')
+
                             if in_tikz:
-                                tikz += line
+                                tikz_list[tikz_idx] += line
+
                             if '\\end{tikzpicture}' in line:
                                 in_tikz = False
-                        if tikz != '':
+                                tikz_idx += 1
+
+                        if tikz_list == []:
+                            print(filename + ': no TikZ found')
+
+                        for i, tikz in enumerate(tikz_list):
+                            output_filename = filename.replace('.tar.gz', f'_{str(i)}' + '.tex')
+                            if output_filename in os.listdir(OUTPUT_DIRECTORY):
+                                print('found ' + output_filename)
+                                continue
+
                             with open(OUTPUT_DIRECTORY / output_filename, 'w') as output:
                                 output.write(tikz)
-                            print(filename + ': extracted TikZ code to ' + output_filename)
-                        else:
-                            print(filename + ': no TikZ found')
+                            print(filename + ': extracted TikZ code to ' + str(OUTPUT_DIRECTORY))
+                                
                 else:
                     print(filename + ': no .tex file found')   
-        except:
+
+        except tarfile.ReadError:
            print(filename + ': not found or corrupted, skipping')
