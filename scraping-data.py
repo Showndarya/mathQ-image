@@ -6,7 +6,7 @@ import os
 import tarfile
 import re
 
-NUMBER_OF_PAPERS = 25
+NUMBER_OF_PAPERS = 20
 SOURCE_DIRECTORY = Path("./zipped_source")
 OUTPUT_DIRECTORY = Path("./output_tex")
 
@@ -54,20 +54,32 @@ for filename in os.listdir(SOURCE_DIRECTORY):
             with tarfile.open(SOURCE_DIRECTORY / filename) as tar:
                 # Find the .tex file in the archive
                 tex_file = None
-                for member in tar.getmembers():
-                    if member.name.endswith('.tex'):
-                        tex_file = member
-                        break
+                try:
+                    for member in tar.getmembers():
+                        if member.name.endswith('.tex'):
+                            tex_file = member
+                            break
+                except EOFError as error:
+                    print(filename + ': not found or corrupted, skipping')
 
                 # If a .tex file is found, extract the tikzpicture block
                 if tex_file is not None:
                     with tar.extractfile(tex_file) as tex:
                         # Read the .tex file and find the tikzpicture block
                         tikz_list = []
+                        use_packages = set()
                         tikz_idx = 0
                         in_tikz = False
                         for line in tex:
                             line = line.decode('utf-8')
+
+                            # Search for usepackage declarations
+                            if re.search(r"\\usepackage", line):
+                                try:
+                                    package_name = re.search(r"\\usepackage{(.*?)}", line).group(1)
+                                except AttributeError:
+                                    package_name = re.search(r"\\usepackage{(.*?)}", line)
+                                use_packages.add(package_name)
 
                             if re.search(r"(\\begin{tikzpicture}).*", line):
                                 in_tikz = True
@@ -91,8 +103,10 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                                 print('found ' + output_filename)
                                 continue
 
-                            # TODO : need to import missing dependencies (search for package names, then \\usepackage)
-                            header = "\\documentclass{article}\n\\usepackage{tikz}\n\\thispagestyle{empty}\n\\begin{document}"
+                            header = "\\documentclass{article}\n"
+                            for package in use_packages:
+                                header += f"\\usepackage{{{package}}}\n"
+                            header += "\\usepackage{tikz}\n\\thispagestyle{empty}\n\\begin{document}"
                             footer = "\\end{document}"
 
                             with open(OUTPUT_DIRECTORY / output_filename, 'w') as output:
