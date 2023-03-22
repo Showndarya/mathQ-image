@@ -1,5 +1,6 @@
 zipped_source
 output_tex
+output_pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
