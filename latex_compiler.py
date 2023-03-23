@@ -18,7 +18,7 @@ if str(OUTPUT_DIRECTORY) not in os.listdir("."):
 # command = ['wsl', 'pdflatex', '-output-directory', str(OUTPUT_DIRECTORY), 'output_tex/2303.11999v1_0.tex']
 # subprocess.check_call(command)
 
-command = ['pdflatex', '-output-directory', str(OUTPUT_DIRECTORY)]
+command = ['pdflatex', '-interaction=batchmode', '-output-directory', str(OUTPUT_DIRECTORY)]
 if platform == "win32":
     command.insert(0, 'wsl')
 
