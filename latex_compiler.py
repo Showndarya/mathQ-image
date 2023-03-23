@@ -22,7 +22,7 @@ command = ['pdflatex', '-interaction=batchmode', '-output-directory', str(OUTPUT
 if platform == "win32":
     command.insert(0, 'wsl')
 
-# TODO: error handling, AFTER fixing inputs in scraping_data
+# TODO: add timeout as batchmode encounters infinite loops while compiling
 for filename in os.listdir(INPUT_DIRECTORY):
     try:
         subprocess.check_call(command + [str(INPUT_DIRECTORY) + "/" + filename])
