@@ -54,7 +54,6 @@ print()
 
 for filename in os.listdir(SOURCE_DIRECTORY):
     if filename.endswith('.tar.gz'):
-
         try:
             with tarfile.open(SOURCE_DIRECTORY / filename) as tar:
                 # Find the .tex file in the archive
@@ -63,14 +62,13 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                     for member in tar.getmembers():
                         if member.name.endswith('.tex'):
                             tex_files.append(member)
-                            break
                 except EOFError as error:
                     print(filename + ': not found or corrupted, skipping')
 
                 # If a .tex file is found, extract the tikzpicture block
                 if tex_files != []:
                     print(filename + ': discovered ' + str(len(tex_files)) + ' .tex files')
-                    for tex_file in tex_files:
+                    for i, tex_file in enumerate(tex_files):
                         with tar.extractfile(tex_file) as tex:
                             # Read the .tex file and find the tikzpicture block
                             tikz_list = []
@@ -111,8 +109,8 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                             if tikz_list == []:
                                 print(filename + ': no TikZ found')
 
-                            for i, tikz in enumerate(tikz_list):
-                                output_filename = filename.replace('.tar.gz', f'_{str(i)}' + '.tex')
+                            for j, tikz in enumerate(tikz_list):
+                                output_filename = filename.replace('.tar.gz', f'_{str(i)}_{str(j)}' + '.tex')
                                 if output_filename in os.listdir(OUTPUT_DIRECTORY):
                                     print('found ' + output_filename)
                                     continue
