@@ -9,8 +9,11 @@ from pathlib import Path
 import subprocess
 from sys import platform
 
-INPUT_DIRECTORY = Path("./output_tex")
-OUTPUT_DIRECTORY = Path("./output_pdf")
+# INPUT_DIRECTORY = Path("./output_tex")
+# OUTPUT_DIRECTORY = Path("./output_pdf")
+
+INPUT_DIRECTORY = Path("./output_tex_temp")
+OUTPUT_DIRECTORY = Path("./output_pdf_temp")
 
 if str(OUTPUT_DIRECTORY) not in os.listdir("."):
     os.mkdir(OUTPUT_DIRECTORY)
