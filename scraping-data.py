@@ -76,6 +76,8 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                             test2 = re.findall(r"\\usepackage(?:.*?){(?:.*?)}", entire_file, re.DOTALL)
                             packages = test2
                         tex = tar.extractfile(tex_file)
+                        # TODO: ! THIS IS HORRIBLE TO UNZIP IT AGAIN :(, FIX THIS
+                        # TODO: order of packages important, need to figure that out!
 
                         for line in tex:
                             line = line.decode('utf-8', errors='replace')
