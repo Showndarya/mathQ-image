@@ -6,7 +6,7 @@ import os
 import tarfile
 import re
 
-NUMBER_OF_PAPERS = 20
+NUMBER_OF_PAPERS = 75
 SOURCE_DIRECTORY = Path("./zipped_source")
 OUTPUT_DIRECTORY = Path("./output_tex")
 
@@ -70,16 +70,15 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                         use_packages = set()
                         tikz_idx = 0
                         in_tikz = False
-                        for line in tex:
-                            line = line.decode('utf-8')
 
-                            # Search for usepackage declarations
-                            if re.search(r"\\usepackage", line):
-                                try:
-                                    package_name = re.search(r"\\usepackage{(.*?)}", line).group(1)
-                                except AttributeError:
-                                    package_name = re.search(r"\\usepackage{(.*?)}", line)
-                                use_packages.add(package_name)
+                        entire_file = tex.read().decode('utf-8', errors='replace')
+                        if re.search(r"\\usepackage(.*?){(.*?)}", entire_file, re.DOTALL):
+                            test2 = re.findall(r"\\usepackage(?:.*?){(?:.*?)}", entire_file, re.DOTALL)
+                            packages = test2
+                        tex = tar.extractfile(tex_file)
+
+                        for line in tex:
+                            line = line.decode('utf-8', errors='replace')
 
                             if re.search(r"(\\begin{tikzpicture}).*", line):
                                 in_tikz = True
@@ -104,8 +103,9 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                                 continue
 
                             header = "\\documentclass{article}\n"
-                            for package in use_packages:
-                                header += f"\\usepackage{{{package}}}\n"
+
+                            header += "\n".join(packages)
+
                             header += "\\usepackage{tikz}\n\\thispagestyle{empty}\n\\begin{document}"
                             footer = "\\end{document}"
 
