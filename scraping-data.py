@@ -6,7 +6,7 @@ import os
 import tarfile
 import re
 
-NUMBER_OF_PAPERS = 75
+NUMBER_OF_PAPERS = 200
 SOURCE_DIRECTORY = Path("./zipped_source")
 OUTPUT_DIRECTORY = Path("./output_tex")
 
@@ -70,11 +70,13 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                         use_packages = set()
                         tikz_idx = 0
                         in_tikz = False
+                        captions = [""]
 
                         entire_file = tex.read().decode('utf-8', errors='replace')
                         if re.search(r"\\usepackage(.*?){(.*?)}", entire_file, re.DOTALL):
-                            test2 = re.findall(r"\\usepackage(?:.*?){(?:.*?)}", entire_file, re.DOTALL)
-                            packages = test2
+                            usepackages = re.findall(r"\\usepackage(?:.*?){(?:.*?)}", entire_file, re.DOTALL)
+                            packages = [package for package in usepackages if package not in ["\\usepackage{tikz}\n"]]
+                            packages.insert(0, "\\usepackage{tikz}\n")
                         tex = tar.extractfile(tex_file)
                         # TODO: ! THIS IS HORRIBLE TO UNZIP IT AGAIN :(, FIX THIS
                         # TODO: order of packages important, need to figure that out!
@@ -91,6 +93,10 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                                 in_tikz = False
                                 tikz_list[tikz_idx] += re.search(r".*(\\end{tikzpicture})", line).group(0)
                                 tikz_idx += 1
+                            
+                            elif re.search(r"\\caption{.*}", line): 
+                                caption = re.search(r"\\caption{(.*)}", line).group(1)
+                                captions.append(caption)
 
                             elif in_tikz:
                                 tikz_list[tikz_idx] += line
@@ -105,14 +111,15 @@ for filename in os.listdir(SOURCE_DIRECTORY):
                                 continue
 
                             header = "\\documentclass{article}\n"
-
                             header += "\n".join(packages)
-
                             header += "\\usepackage{tikz}\n\\thispagestyle{empty}\n\\begin{document}"
                             footer = "\\end{document}"
 
                             with open(OUTPUT_DIRECTORY / output_filename, 'w') as output:
-                                output.write(header + tikz + footer)
+                                if len(captions)>i:
+                                    output.write(header + tikz + "\\caption{" + captions[i] + "}" + footer)
+                                else:
+                                    output.write(header + tikz + footer)
                             print(filename + ': extracted TikZ code to ' + str(OUTPUT_DIRECTORY))
                                 
                 else:
