@@ -25,9 +25,8 @@ command = ['pdflatex', '-interaction=batchmode', '-output-directory', str(OUTPUT
 if platform == "win32":
     command.insert(0, 'wsl')
 
-# TODO: add timeout as batchmode encounters infinite loops while compiling
 for filename in os.listdir(INPUT_DIRECTORY):
     try:
-        subprocess.check_call(command + [str(INPUT_DIRECTORY) + "/" + filename])
+        subprocess.check_call(command + [str(INPUT_DIRECTORY) + "/" + filename], timeout=5)
     except:
         print(filename + " failed to compile, skipping")
