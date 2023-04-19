@@ -24,16 +24,6 @@
 	</head>
 
 	<body>
-		<!-- <div id="info">
-			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - skinning and morphing<br />
-			<p>
-				The animation system allows clips to be played individually, looped, or crossfaded with other clips. This example shows a character looping in one of several base animation states, then transitioning smoothly to one-time actions. Facial expressions are controlled independently with morph targets.
-			</p>
-			Model by
-			<a href="https://www.patreon.com/quaternius" target="_blank" rel="noopener">Tomás Laulhé</a>,
-			modifications by <a href="https://donmccurdy.com/" target="_blank" rel="noopener">Don McCurdy</a>. CC0.<br />
-		</div> -->
-
 		<!-- Import maps polyfill -->
 		<!-- Remove this when import maps will be widely supported -->
 		<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
@@ -66,6 +56,12 @@
 			init();
 			animate();
 
+			/*
+				w - weight (default is 1)
+				x - pitch (default 0)
+				y - yaw (default 0)
+				z - roll (default 0)
+			*/
 			function setQuaternion(obj, w, x, y, z) {
 				obj.quaternion._w = w;
 				obj.quaternion._x = x;
@@ -73,23 +69,26 @@
 				obj.quaternion._z = z;
 			}
 
-			function setPosition(obj, w, x, y, z) {
-				obj.position._w = w;
-				obj.position._x = x;
-				obj.position._y = y;
-				obj.position._z = z;
+			/*
+				x - x axis (horizontal)
+				y - y axis (vertical)
+				z - z axis (depth)
+			*/
+			function setPosition(obj, x, y, z) {
+				obj.position.x = x;
+				obj.position.y = y;
+				obj.position.z = z;
 			}
 
-			function setRotation(obj, x, y, z) {
-				obj.rotation._x = x;
-				obj.rotation._y = y;
-				obj.rotation._z = z;
-			}
-
+			/*
+				x - x axis (default 1)
+				y - y axis (default 1)
+				z - z axis (default 1)
+			*/
 			function setScale(obj, x, y, z) {
 				obj.scale.x = x;
-				obj.scale.x = y;
-				obj.scale.x = z;
+				obj.scale.y = y;
+				obj.scale.z = z;
 			}
 
 			function init() {
@@ -143,12 +142,9 @@
 					};
 
 					setParts(armature);
-					console.log(robotParts);
 
 					model = gltf.scene;
 					scene.add( model );
-
-					createGUI( model, gltf.animations );
 
 				}, undefined, function ( e ) {
 
@@ -163,124 +159,6 @@
 				container.appendChild( renderer.domElement );
 
 				window.addEventListener( 'resize', onWindowResize );
-
-				// stats
-				stats = new Stats();
-				container.appendChild( stats.dom );
-
-			}
-
-			function createGUI( model, animations ) {
-
-				const states = [ 'Idle', 'Walking', 'Running', 'Dance', 'Death', 'Sitting', 'Standing' ];
-				const emotes = [ 'Jump', 'Yes', 'No', 'Wave', 'Punch', 'ThumbsUp' ];
-
-				gui = new GUI();
-
-				mixer = new THREE.AnimationMixer( model );
-
-				actions = {};
-
-				for ( let i = 0; i < animations.length; i ++ ) {
-
-					const clip = animations[ i ];
-					const action = mixer.clipAction( clip );
-					actions[ clip.name ] = action;
-
-					if ( emotes.indexOf( clip.name ) >= 0 || states.indexOf( clip.name ) >= 4 ) {
-
-						action.clampWhenFinished = true;
-						action.loop = THREE.LoopOnce;
-
-					}
-
-				}
-
-				// states
-
-				const statesFolder = gui.addFolder( 'States' );
-
-				const clipCtrl = statesFolder.add( api, 'state' ).options( states );
-
-				clipCtrl.onChange( function () {
-
-					fadeToAction( api.state, 0.5 );
-
-				} );
-
-				statesFolder.open();
-
-				// emotes
-
-				const emoteFolder = gui.addFolder( 'Emotes' );
-
-				function createEmoteCallback( name ) {
-
-					api[ name ] = function () {
-
-						fadeToAction( name, 0.2 );
-
-						mixer.addEventListener( 'finished', restoreState );
-
-					};
-
-					emoteFolder.add( api, name );
-
-				}
-
-				function restoreState() {
-
-					mixer.removeEventListener( 'finished', restoreState );
-
-					fadeToAction( api.state, 0.2 );
-
-				}
-
-				for ( let i = 0; i < emotes.length; i ++ ) {
-
-					createEmoteCallback( emotes[ i ] );
-
-				}
-
-				emoteFolder.open();
-
-				// expressions
-
-				face = model.getObjectByName( 'Head_4' );
-
-				const expressions = Object.keys( face.morphTargetDictionary );
-				const expressionFolder = gui.addFolder( 'Expressions' );
-
-				for ( let i = 0; i < expressions.length; i ++ ) {
-
-					expressionFolder.add( face.morphTargetInfluences, i, 0, 1, 0.01 ).name( expressions[ i ] );
-
-				}
-
-				activeAction = actions[ 'Standing' ];
-				activeAction.play();
-
-				expressionFolder.open();
-
-			}
-
-			function fadeToAction( name, duration ) {
-
-				previousAction = activeAction;
-				activeAction = actions[ name ];
-
-				if ( previousAction !== activeAction ) {
-
-					previousAction.fadeOut( duration );
-
-				}
-
-				activeAction
-					.reset()
-					.setEffectiveTimeScale( 1 )
-					.setEffectiveWeight( 1 )
-					.fadeIn( duration )
-					.play();
 
 			}
 
@@ -303,11 +181,391 @@
 
 				requestAnimationFrame( animate );
 
-				setQuaternion(robotParts["Head"], 1, 0, 0, 0);
+				const data = {
+				"FootL" : {
+				"quaternion" : [0, 0, 0.696, 0.71848],
+				"position" : [0.006, 0, 0.001],
+				"scale" : [1, 1, 1],
+				},
+				"FootL_1" : {
+				"quaternion" : [0, 0, -0.016, 0.99987],
+				"position" : [0, 0.003, 0.004],
+				"scale" : [1, 1, 1],
+				},
+				"FootL_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Body" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.014, 0.003],
+				"scale" : [1, 1, 1],
+				},
+				"Torso" : {
+				"quaternion" : [0.707, -0.707, 0, 0],
+				"position" : [0, 0.008, -0.001],
+				"scale" : [1, 1, 1],
+				},
+				"Torso_2" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Torso_3" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Hips" : {
+				"quaternion" : [0.993, -0.119, 0, 0],
+				"position" : [0, -0.001, -0.001],
+				"scale" : [1, 1, 1],
+				},
+				"Abdomen" : {
+				"quaternion" : [0.993, 0.115, 0, 0],
+				"position" : [0, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Torso_1" : {
+				"quaternion" : [0.998, 0.058, 0, 0],
+				"position" : [0, 0.005, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Neck" : {
+				"quaternion" : [0.999, -0.043, -0.014, 0.02829],
+				"position" : [0, 0.006, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Head" : {
+				"quaternion" : [0.996, -0.035, -0.082, -0.00189],
+				"position" : [0, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Head_1" : {
+				"quaternion" : [0.7, -0.714, 0.001, -0.00096],
+				"position" : [0, 0.006, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Head_2" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Head_3" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Head_4" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Head_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.011, 0],
+				"scale" : [1, 1, 1],
+				},
+				"ShoulderL" : {
+				"quaternion" : [-0.21, 0.011, 0.053, 0.9762],
+				"position" : [0.006, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"ShoulderL_1" : {
+				"quaternion" : [-0.493, 0.493, 0.506, -0.50644],
+				"position" : [0, 0, 0],
+				"scale" : [1, 1, 1],
+				},
+				"UpperArmL" : {
+				"quaternion" : [0.719, -0.055, -0.69, 0.06921],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"ArmL" : {
+				"quaternion" : [0.685, 0.028, 0.02, 0.72807],
+				"position" : [0, -0.007, -0.001],
+				"scale" : [1, 1, 1],
+				},
+				"LowerArmL" : {
+				"quaternion" : [0.722, 0.31, 0.499, -0.36494],
+				"position" : [0, 0.007, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Palm2L" : {
+				"quaternion" : [0.946, -0.003, 0.006, -0.32553],
+				"position" : [0, 0.014, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Middle1L" : {
+				"quaternion" : [0.833, -0.004, 0.024, -0.55207],
+				"position" : [0, 0.004, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Middle2L" : {
+				"quaternion" : [0.713, -0.038, 0.001, -0.69966],
+				"position" : [0, 0.002, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Middle2L_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"ThumbL" : {
+				"quaternion" : [0.138, 0.73, 0.635, 0.21109],
+				"position" : [0.001, 0.013, 0.002],
+				"scale" : [1, 1, 1],
+				},
+				"Thumb2L" : {
+				"quaternion" : [-0.383, -0.249, 0.627, 0.63089],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Thumb2L_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Palm1L" : {
+				"quaternion" : [0.886, 0.304, 0.279, -0.21035],
+				"position" : [0, 0.014, 0],
+				"scale" : [1, 1, 1],
+				},
+				"IndexL" : {
+				"quaternion" : [0.703, 0.047, -0.396, -0.58906],
+				"position" : [0, 0.004, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Index2L" : {
+				"quaternion" : [0.713, -0.043, -0.018, -0.69996],
+				"position" : [0, 0.002, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Index2L_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Palm3L" : {
+				"quaternion" : [0.861, -0.336, -0.336, -0.18059],
+				"position" : [0, 0.014, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Ring1L" : {
+				"quaternion" : [0.649, -0.068, 0.483, -0.58401],
+				"position" : [0, 0.004, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Ring2L" : {
+				"quaternion" : [0.713, -0.043, -0.018, -0.69996],
+				"position" : [0, 0.002, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Ring2L_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"ShoulderR" : {
+				"quaternion" : [0.225, -0.012, 0.053, 0.97277],
+				"position" : [-0.006, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"ShoulderR_1" : {
+				"quaternion" : [-0.498, 0.498, -0.502, 0.50246],
+				"position" : [0, 0, 0],
+				"scale" : [1, 1, 1],
+				},
+				"UpperArmR" : {
+				"quaternion" : [0.589, 0.044, 0.805, 0.05748],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"ArmR" : {
+				"quaternion" : [0.678, 0.101, -0.087, -0.72273],
+				"position" : [0, 0.003, 0],
+				"scale" : [0.227, 0.227, 0.227],
+				},
+				"LowerArmR" : {
+				"quaternion" : [0.656, 0.09, -0.705, 0.25501],
+				"position" : [0, 0.006, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Palm2R" : {
+				"quaternion" : [0.943, -0.037, -0.075, 0.32325],
+				"position" : [0, 0.014, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Middle1R" : {
+				"quaternion" : [0.85, -0.044, -0.01, 0.52509],
+				"position" : [0, 0.004, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Middle2R" : {
+				"quaternion" : [0.862, 0.035, -0.039, 0.50472],
+				"position" : [0, 0.002, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Middle2R_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"ThumbR" : {
+				"quaternion" : [0.359, 0.669, -0.587, -0.28],
+				"position" : [-0.001, 0.013, 0.002],
+				"scale" : [1, 1, 1],
+				},
+				"Thumb2R" : {
+				"quaternion" : [-0.296, -0.136, 0.735, 0.59462],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Thumb2R_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Palm1R" : {
+				"quaternion" : [0.558, -0.158, 0.743, 0.33388],
+				"position" : [0, 0.014, 0],
+				"scale" : [1, 1, 1],
+				},
+				"IndexR" : {
+				"quaternion" : [0.631, -0.505, -0.574, 0.13577],
+				"position" : [0, 0.004, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Index2R" : {
+				"quaternion" : [0.849, -0.042, -0.012, 0.52724],
+				"position" : [0, 0.002, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Index2R_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Palm3R" : {
+				"quaternion" : [-0.344, -0.115, 0.858, -0.36312],
+				"position" : [0, 0.014, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Ring1R" : {
+				"quaternion" : [0.591, 0.575, 0.553, 0.11674],
+				"position" : [0, 0.004, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Ring2R" : {
+				"quaternion" : [0.893, 0.139, 0.025, 0.42706],
+				"position" : [0, 0.002, 0],
+				"scale" : [1, 1, 1],
+				},
+				"Ring2R_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.001, 0],
+				"scale" : [1, 1, 1],
+				},
+				"UpperLegL" : {
+				"quaternion" : [0.192, 0.978, 0.022, -0.08342],
+				"position" : [0.006, 0.001, -0.002],
+				"scale" : [1, 1, 1],
+				},
+				"LegL" : {
+				"quaternion" : [0.629, 0.778, -0.002, 0.0026],
+				"position" : [0, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"LowerLegL" : {
+				"quaternion" : [0.937, 0.35, 0, 0],
+				"position" : [0, 0.006, 0],
+				"scale" : [1, 1, 1],
+				},
+				"LowerLegL_1" : {
+				"quaternion" : [0.772, 0.636, -0.001, 0.00287],
+				"position" : [0, 0.005, -0.003],
+				"scale" : [1, 1, 1],
+				},
+				"LowerLegL_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.009, 0],
+				"scale" : [1, 1, 1],
+				},
+				"UpperLegR" : {
+				"quaternion" : [0.191, 0.972, -0.032, 0.13601],
+				"position" : [-0.006, 0.001, -0.002],
+				"scale" : [1, 1, 1],
+				},
+				"LegR" : {
+				"quaternion" : [0.641, 0.767, -0.002, 0.0026],
+				"position" : [0, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"LowerLegR" : {
+				"quaternion" : [0.937, 0.35, 0, 0],
+				"position" : [0, 0.006, 0],
+				"scale" : [1, 1, 1],
+				},
+				"LowerLegR_1" : {
+				"quaternion" : [0.772, 0.636, -0.001, 0.00286],
+				"position" : [0, 0.005, -0.003],
+				"scale" : [1, 1, 1],
+				},
+				"LowerLegR_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.009, 0],
+				"scale" : [1, 1, 1],
+				},
+				"PoleTargetL" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0.009, 0.011, 0.017],
+				"scale" : [1, 1, 1],
+				},
+				"PoleTargetL_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"FootR" : {
+				"quaternion" : [0, 0, 0.696, 0.71848],
+				"position" : [-0.006, 0, 0.001],
+				"scale" : [1, 1, 1],
+				},
+				"FootR_1" : {
+				"quaternion" : [0, 0, -0.016, 0.99987],
+				"position" : [0, 0.003, 0.004],
+				"scale" : [1, 1, 1],
+				},
+				"FootR_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+				"PoleTargetR" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [-0.011, 0.011, 0.017],
+				"scale" : [1, 1, 1],
+				},
+				"PoleTargetR_end" : {
+				"quaternion" : [1, 0, 0, 0],
+				"position" : [0, 0.003, 0],
+				"scale" : [1, 1, 1],
+				},
+			}	
+
+				for (let name in data) {
+					const quaternion = data[name]["quaternion"];
+					setQuaternion(robotParts[name], quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
+
+					const position = data[name]["position"];
+					setPosition(robotParts[name], position[0], position[1], position[2]);
+
+					const scale = data[name]["scale"];
+					setScale(robotParts[name], scale[0], scale[1], scale[2]);
+				}
 
 				renderer.render( scene, camera );
-
-				stats.update();
 
 			}
 
